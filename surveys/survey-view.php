@@ -39,7 +39,7 @@ $mySurvey= new Survey($myID);
 
     }
         
-//dumpDie($mySurvey); 
+dumpDie($mySurvey); 
 # connection comes first in mysqli (improved) function
 
 
@@ -62,6 +62,7 @@ class Survey
     public $Description=''; 
     public $SurveyID=0; 
     public $isValid=false; 
+    public $Questions= array();
     
     public function __construct($id)
     {//forcibly cast to an integer 
@@ -82,19 +83,63 @@ class Survey
                   
         
 			     
-	   }
-}
+                }
+                    }
 
-            @mysqli_free_result($result); # We're done with the data!
-
+            @mysqli_free_result($result); # We're done with the data     
         
-        
-        
-        
-        
+    
     
     }#end Survey constructor
     
     
     
 }#end Survey Class 
+    /*
+    select q.QuestionID, q.Question from sm16_questions q inner join sm16_surveys s on s.SurveyID = q.SurveyID where s.SurveyID = 1
+    
+    
+    */
+    /*Start of Question Work*/
+       $sql = "select q.QuestionID, q.Question, q.Description from sm16_questions q inner join sm16_surveys s on s.SurveyID = q.SurveyID where s.SurveyID= " . $id;
+    //$sql = "select * from sm16_surveys where SurveyID = " . $id;
+        
+        
+        $result = mysqli_query(IDB::conn(),$sql) or die(trigger_error(mysqli_error(IDB::conn()),                        E_USER_ERROR));
+
+                if(mysqli_num_rows($result) > 0)
+                    {#records exist - process
+	                //$this->SurveyID= $id;   
+                     //$isValid = true;	
+	                   while ($row = mysqli_fetch_assoc($result))
+	                   {
+                   //$this->Title = dbOut($row['Title']);
+                    //$this->Description = dbOut($row['Description']);
+                  
+                        $this->Questions[] = new                                                        Question($row['QuestionID'],dbOut($row['Question']),dbOut($row['Description'])); 
+			     
+	                   }
+                    }
+
+            @mysqli_free_result($result); # We're done with the data 
+    //End of Question WOrk
+    
+    
+    
+    
+class Question
+    
+{
+    public $QuestionID= 0; 
+    public $Text= '';
+    public $Description= ''; 
+    
+        
+    
+    public function __construct($QuestionID,$Text,$Description)
+    {
+        $this->QuestionID =$QuestionID;
+        $this->Text =$Text; 
+        $this->Description =$Description; 
+    }
+}#end question class
